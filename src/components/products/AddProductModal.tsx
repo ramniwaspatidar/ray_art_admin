@@ -17,12 +17,14 @@ interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  product?: any; // Add optional product for editing
 }
 
 const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  product,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -37,6 +39,27 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     category: '',
     subCategory: '',
   });
+
+  // Populate form when product prop changes (for editing)
+  React.useEffect(() => {
+    if (product) {
+      setNewProduct({
+        name: product.name || '',
+        description: product.description || '',
+        price: String(product.price) || '',
+        originalPrice: String(product.originalPrice) || '',
+        imageUrl: product.imageUrl || '',
+        category: product.category || '',
+        subCategory: product.subCategory || '',
+      });
+      if (product.imageUrl) {
+        setImagePreview(product.imageUrl);
+      }
+    } else {
+      // Reset if no product (adding mode)
+      handleReset();
+    }
+  }, [product, isOpen]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,21 +94,20 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             }
           });
 
+          // Generate transformed URL using the SDK as per the user's reference
           const myImage = cld.image(uploadResult.publicId);
           
-          // myImage
-          //   .resize(
-          //     fill()
-          //       .width(433)
-          //       .aspectRatio(0.5)
-          //       .gravity(autoGravity())
-          //   )
-          //   .delivery(quality(auto()))
-          //   .delivery(format(auto()));
+          myImage
+            .resize(
+              fill()
+                .width(433)
+                .aspectRatio(0.5)
+                .gravity(autoGravity())
+            )
+            .delivery(quality(auto()))
+            .delivery(format(auto()));
 
           imageUrl = myImage.toURL();
-
-          toast.success('Image uploaded successfully');
         } else {
           throw new Error(uploadResult.message || 'Image upload failed');
         }
@@ -99,8 +121,13 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
         imageUrl,
       };
 
-      const response = await fetch('http://localhost:3001/api/products', {
-        method: 'POST',
+      const isEditing = !!product?.id;
+      const url = isEditing 
+        ? `http://localhost:3001/api/products/${product.id}` 
+        : 'http://localhost:3001/api/products';
+      
+      const response = await fetch(url, {
+        method: isEditing ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -110,21 +137,21 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       const result = await response.json();
 
       if (result.success) {
-        toast.success(result.message || 'Product added successfully');
+        toast.success(result.message || `Product ${isEditing ? 'updated' : 'added'} successfully`);
         handleClose();
         onSuccess();
       } else {
-        toast.error(result.message || 'Failed to add product');
+        toast.error(result.message || `Failed to ${isEditing ? 'update' : 'add'} product`);
       }
     } catch (error) {
-      console.error('Error adding product:', error);
-      toast.error('Failed to add product');
+      console.error('Error saving product:', error);
+      toast.error('Failed to save product');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
+  const handleReset = () => {
     setNewProduct({
       name: '',
       description: '',
@@ -136,6 +163,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     });
     setSelectedFile(null);
     setImagePreview(null);
+  };
+
+  const handleClose = () => {
+    handleReset();
     onClose();
   };
 
@@ -147,7 +178,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Add New Product"
+      title={product ? "Update Product" : "Add New Product"}
       className="max-w-6xl"
     >
       <form onSubmit={handleAddProduct} className="space-y-6">
@@ -260,7 +291,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             className="btn-primary px-6 py-2 rounded-lg text-sm font-medium"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Adding Product...' : 'Add Product'}
+            {isSubmitting ? (product ? 'Updating...' : 'Adding...') : (product ? 'Update Product' : 'Add Product')}
           </button>
         </div>
       </form>

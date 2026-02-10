@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
-import {  LOGIN_FORM } from '@/utils/constant';
+import { LOGIN_FORM } from '@/utils/constant';
+import { setCookieAuthToken, setUserRole } from '@/utils/auth';
+import { toastService } from '@/lib/toast';
 import Card from '../ui/Card';
 
 const LoginForm: React.FC = () => {
@@ -47,48 +49,51 @@ const LoginForm: React.FC = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-     router.replace('/dashboard')
 
-    // try {
-    //   const response = await fetch(
-    //     `${process.env.NEXT_PUBLIC_BASE_URL}/${ADMIN_LOGIN}`,
-    //     {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'x-api-key': 'ksbQs4jsi3D3dsf8sgw6AAfsewfsdDhgu76tger5tygAA',
-    //       },
-    //       body: JSON.stringify({
-    //         email: formData.email,
-    //         password: formData.password,
-    //       }),
-    //     }
-    //   );
+    try {
+      const response = await fetch('http://localhost:3001/api/admin/validate', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    //   const data = await response.json();
+      const data = await response.json();
 
-    //   if (!response.ok) {
-    //     throw new Error(data.message || LOGIN_FORM.LOGIN_FAILED);
-    //   }
-    //   if (data && data.data.token) {
-    //     setCookieAuthToken(data.data.token)
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || LOGIN_FORM.LOGIN_FAILED);
+      }
 
-    //     if (data.data.role) {
-    //       setUserRole(data.data.role);
-    //     }
-        
-    //     toastService.success(LOGIN_FORM.LOGIN_SUCCESS);
-    //     router.replace('/dashboard');
-    //   } else {
-    //     console.error(LOGIN_FORM.TOKEN_NOT_FOUND_LOG, data);
-    //     throw new Error(LOGIN_FORM.NO_TOKEN_RECEIVED);
-    //   }
-    // } catch (error: any) {
-    //   console.error(LOGIN_FORM.LOGIN_ERROR_LOG, error);
-    //   toastService.error(error.message || LOGIN_FORM.LOGIN_FAILED_RETRY);
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      if (data && data.success) {
+        // Store user role if available
+        if (data.data && data.data.role) {
+          setUserRole(data.data.role);
+        }
+
+        // Use email as a temporary authToken if explicit token is missing
+        const token = data.token || data.data?.email;
+        if (token) {
+          setCookieAuthToken(token);
+          toastService.success(data.message || LOGIN_FORM.LOGIN_SUCCESS || 'Login successful!');
+          router.replace('/dashboard/products');
+        } else {
+          throw new Error(LOGIN_FORM.NO_TOKEN_RECEIVED);
+        }
+      } else {
+        console.error(LOGIN_FORM.TOKEN_NOT_FOUND_LOG, data);
+        throw new Error(LOGIN_FORM.NO_TOKEN_RECEIVED);
+      }
+    } catch (error: any) {
+      console.error(LOGIN_FORM.LOGIN_ERROR_LOG, error);
+      toastService.error(error.message || LOGIN_FORM.LOGIN_FAILED_RETRY);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderLoginForm = () => (

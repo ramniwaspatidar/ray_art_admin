@@ -95,15 +95,13 @@ const Sidebar: React.FC = () => {
   const isActive = (href: string) => pathname === href;
 
   const handleLogout = () => {
-    // logout();
-    // setLoggedIn(false);
-    // router.replace('/');
+    logout();
+    setLoggedIn(false);
+    router.replace('/');
   };
 
   useEffect(() => {
-    // setLoggedIn(isAuthenticated());
-        setLoggedIn(true);
-
+    setLoggedIn(isAuthenticated());
   }, [pathname]);
 
   return (

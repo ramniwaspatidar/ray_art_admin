@@ -38,49 +38,6 @@ export const API_ENDPOINTS = {
   GET_USERS: '/admin-auth/admin/users',
   DELETE_ADMIN: '/admin-auth/admin/delete/',
   UPDATE_USER_ROLE: '/admin-auth/admin/update-role/',
-
-  // Dashboard & Analytics
-  ADMIN_DASHBOARD_ANALYTICS: '/admin/dashboard/analytics',
-  ADMIN_DASHBOARD_QUESTION_SEARCH:
-    '/admin/dashboard/questions-searching?questionType=',
-  ADMIN_DASHBOARD_SEND_GROUP_EMAIL: '/admin/dashboard/send-mail-group',
-  ADMIN_DASHBOARD_FUNNEL_ANALYTICS: '/admin/dashboard/funnel-analytics',
-
-  // Applications
-  ADMIN_APPLICATION_RE_ALLOW: '/admin/application/allow-refill',
-  ADMIN_APPLICATION_DELETE: '/admin/application/delete-application',
-
-  // Interview Tasks
-  ADMIN_INTERVIEW_TASK: '/admin/interview-tasks',
-  ADMIN_INTERVIEW_DOWNLOAD_TASKS: '/admin/download-interview-tasks',
-  ADMIN_ACCEPT_REJECT_TASK: '/admin/accept-reject-tasks',
-  ADMIN_REALLOW_TASK_SUBMISSION: '/admin/reallow-task-submission',
-  ADMIN_TASK_BULK_UPLOAD: '/admin/bulk-accept-reject-tasks',
-  ADMIN_UPLOAD_FILE: '/upload/file',
-
-  // Interview Retake
-  CANCEL_REINTERVIEW_REQUEST: 'admin/reject-retake-interview',
-  ACCEPT_REINTERVIEW_REQUEST: 'admin/accept-retake-interview',
-
-  // Human Panel
-  ADMIN_HUMAN_PANEL_AVAILABILITY: '/human-panel/availability',
-  ADMIN_HUMAN_PANEL_INTERVIEWERS: '/human-panel/interviewers',
-  ADMIN_HUMAN_PANEL_AVAILABILITY_ALL: '/human-panel/admin/availability/all',
-  ADMIN_HUMAN_PANEL_GENERATE_SLOTS: '/human-panel/slots/generate',
-  ADMIN_HUMAN_PANEL_INTERVIEWER_SLOTS: '/human-panel/slots/interviewer',
-  ADMIN_PANEL_DELETE_SLOTS: '/human-panel/admin/slots/delete',
-  ADMIN_PANEL_UPDATE_SLOTS: '/human-panel/slots/update',
-  ADMIN_PANEL_ALL_SLOTS: '/human-panel/admin/slots/all',
-  ADMIN_PANEL_EMPTY_SLOTS: '/human-panel/slots/empty',
-  ADMIN_PANEL_CREATE_PANEL: '/human-panel/admin/panel/create',
-  ADMIN_PANEL_CREATE_SLOT: '/human-panel/slots/create',
-  ADMIN_PANEL_DELETE_SLOT_PERMANENT: '/human-panel/slots/delete-permanent',
-  ADMIN_SUPPORT_LIST: '/application/zoho/tickets',
-  ADMIN_SUPPORT_STATUS: '/application/tickets/',
-  ADMIN_EVALUATION: '/human-panel/interviewer/evaluation',
-
-  // Interview Details
-  ADMIN_USER_INTERVIEW_PROFILE_DETAILS: '/admin/dashboard/interview-details',
 };
 
 export const BUTTONS = {
@@ -141,7 +98,7 @@ export const BUTTONS = {
   ADD_INTERVIEWER_AVAILABILITY: 'Add Interviewer Availability',
   PREVIOUS : 'Previous',
   NEXT : 'Next',
-  VIEW_INTERVIEWERS  : 'View Interviewers',
+  VIEW_INTERVIEWERS  : 'View s',
    CREATE_PANEL : ' Create Panel',
    WAITLISTED : 'Waitlist'
 };

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Pagination from '@/components/ui/Pagination';
 import LoadingState from '@/components/ui/LoadingState';
 import AddProductModal from '@/components/products/AddProductModal';
+import Modal from '@/components/ui/Modal';
 import { withAuth } from '@/hooks/useAuth';
 import { PRODUCTS_PAGE, BUTTONS, TABLE_HEADERS } from '@/utils/constant';
 import toast from 'react-hot-toast';
@@ -33,6 +34,41 @@ const ProductsPage: React.FC = () => {
     totalItems: 0,
     maxPageReached: 1
   });
+
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirmed = async () => {
+    if (!productToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'accept': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message || 'Product deleted successfully');
+        setIsDeleteModalOpen(false);
+        setProductToDelete(null);
+        fetchProducts(pagination.currentPage);
+      } else {
+        toast.error(result.message || 'Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fetchProducts = async (page: number = 1) => {
     try {
@@ -148,8 +184,24 @@ const ProductsPage: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex gap-2">
-                              <button className="text-theme-primary hover:text-theme-primary/80">{BUTTONS.EDIT}</button>
-                              <button className="text-red-600 hover:text-red-800">{BUTTONS.DELETE}</button>
+                              <button 
+                                onClick={() => {
+                                  setEditingProduct(product);
+                                  setIsAddModalOpen(true);
+                                }}
+                                className="text-theme-primary hover:text-theme-primary/80"
+                              >
+                                {BUTTONS.EDIT}
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setProductToDelete(product);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                {BUTTONS.DELETE}
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -180,9 +232,50 @@ const ProductsPage: React.FC = () => {
 
       <AddProductModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => fetchProducts(1)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingProduct(null);
+        }}
+        onSuccess={() => fetchProducts(pagination.currentPage)}
+        product={editingProduct}
       />
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          if (!isDeleting) {
+            setIsDeleteModalOpen(false);
+            setProductToDelete(null);
+          }
+        }}
+        title="Confirm Deletion"
+        className="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-theme-foreground">
+            Are you sure you want to delete <span className="font-semibold">{productToDelete?.name}</span>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setProductToDelete(null);
+              }}
+              className="px-4 py-2 text-sm font-medium text-theme-foreground bg-theme-muted/20 hover:bg-theme-muted/30 rounded-lg transition-colors"
+              disabled={isDeleting}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirmed}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

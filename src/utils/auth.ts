@@ -55,7 +55,7 @@ export const logout = () => {
     try {
       const { deleteCookie } = useCookie();
       deleteCookie('authToken');
-      deleteCookie('userRole');
+      deleteCookie('role');
     } catch (error) {
       console.error('Error during logout:', error);
     }
