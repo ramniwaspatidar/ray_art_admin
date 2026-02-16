@@ -13,6 +13,7 @@ interface Product {
   id: number;
   name: string;
   description: string | null;
+  features?: string[] | null;
   price: string;
   originalPrice: string | null;
   imageUrl: string | null;
@@ -148,6 +149,9 @@ const ProductsPage: React.FC = () => {
                         Description
                       </th>
                       <th className="table-header-text px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                        Features
+                      </th>
+                      <th className="table-header-text px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
                         {TABLE_HEADERS.ACTIONS}
                       </th>
                     </tr>
@@ -181,6 +185,9 @@ const ProductsPage: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 text-sm text-theme-foreground max-w-xs truncate">
                             {product.description || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-theme-foreground max-w-xs truncate">
+                            {Array.isArray(product.features) ? product.features.join(', ') : (product.features || 'N/A')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex gap-2">

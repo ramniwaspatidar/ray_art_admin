@@ -129,7 +129,8 @@ const Sidebar: React.FC = () => {
       {/* Logo Section */}
       <div className="p-6 border-b border-theme-border">
         <Link href="/dashboard" className="flex items-center">
-          <img src="/main_logo.png" className="h-8" alt="The Foundery" />
+          <img src="/logo.png" className="h-8" alt="The Foundery" />
+          <span className="ml-2 text-lg font-bold">Art Gallery</span>
         </Link>
       </div>
 

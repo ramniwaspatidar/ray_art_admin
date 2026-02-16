@@ -9,7 +9,7 @@ const AuthPage: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8 flex justify-center">
-          {/* <img src="/main_logo.png" className='h-[50px]' /> */}
+          <img src="/logo.png" className='h-[50px]' />
         </div>
 
         {/* Login Form Only */}

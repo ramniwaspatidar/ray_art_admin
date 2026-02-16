@@ -35,7 +35,7 @@ const Navigation: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-            <img src="/main_logo.png" className='h-[30px]' />
+            <img src="/logo.png" className='h-[30px]' />
               {/* <span className="text-2xl font-bold text-theme-primary">
                 The Foundery
               </span> */}

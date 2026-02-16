@@ -23,12 +23,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   product,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
+    features: '',
     price: '',
     originalPrice: '',
     imageUrl: '',
@@ -42,6 +44,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       setNewProduct({
         name: product.name || '',
         description: product.description || '',
+        features: Array.isArray(product.features) ? product.features.join('\n') : (product.features || ''),
         price: String(product.price) || '',
         originalPrice: String(product.originalPrice) || '',
         imageUrl: product.imageUrl || '',
@@ -66,35 +69,63 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      // Reset imageUrl when new file selected so user knows they need to upload
+      if (!product) { 
+         setNewProduct(prev => ({ ...prev, imageUrl: '' }));
+      }
+    }
+  };
+
+  const handleUploadImage = async () => {
+    if (!selectedFile) {
+      toast.error('Please select an image first');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('category', newProduct.category || 'products'); // Use category or default
+
+      const uploadResult = await uploadImageAction(formData);
+
+      if (uploadResult.success && uploadResult.url) {
+        setNewProduct(prev => ({ ...prev, imageUrl: uploadResult.url }));
+        toast.success('Image uploaded successfully');
+      } else {
+        throw new Error(uploadResult.message || 'Image upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!newProduct.imageUrl) {
+      toast.error('Please upload an image for the product');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       
-      let imageUrl = newProduct.imageUrl;
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('category', newProduct.category);
-        
-        const uploadResult = await uploadImageAction(formData);
-        
-        if (uploadResult.success && uploadResult.url && uploadResult.publicId) {
-          imageUrl = uploadResult.url;
-        } else {
-          throw new Error(uploadResult.message || 'Image upload failed');
-        }
-      }
-
       // Convert prices to numbers as required by the backend
+      // Convert features string to array
+      const featuresArray = newProduct.features 
+        ? newProduct.features.split('\n').filter(f => f.trim() !== '') 
+        : [];
+
       const productData = {
         ...newProduct,
         price: parseFloat(newProduct.price) || 0,
         originalPrice: parseFloat(newProduct.originalPrice) || 0,
-        imageUrl,
+        features: featuresArray,
       };
 
       const isEditing = !!product?.id;
@@ -131,6 +162,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     setNewProduct({
       name: '',
       description: '',
+      features: '',
       price: '',
       originalPrice: '',
       imageUrl: '',
@@ -139,6 +171,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     });
     setSelectedFile(null);
     setImagePreview(null);
+    setIsUploading(false);
   };
 
   const handleClose = () => {
@@ -160,8 +193,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       <form onSubmit={handleAddProduct} className="space-y-6">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Image Upload Section */}
-          <div className="w-full md:w-1/3 flex flex-col items-center">
-            <label className="text-sm font-medium text-theme-foreground mb-4 w-full">Product Image</label>
+          <div className="w-full md:w-1/3 flex flex-col items-center gap-4">
+            <label className="text-sm font-medium text-theme-foreground w-full">Product Image</label>
             <div className="relative w-full aspect-square border-2 border-dashed border-theme-border rounded-xl overflow-hidden flex items-center justify-center bg-theme-muted/10 group hover:border-theme-primary transition-colors cursor-pointer">
               {imagePreview ? (
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -170,7 +203,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                   <svg className="mx-auto h-12 w-12 text-neutral-400 group-hover:text-theme-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  <p className="mt-2 text-sm text-neutral-500">Click to upload image</p>
+                  <p className="mt-2 text-sm text-neutral-500">Click to select image</p>
                 </div>
               )}
               <input
@@ -185,6 +218,24 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 </div>
               )}
             </div>
+            
+            {/* Separate Upload Button */}
+            {selectedFile && (
+               <button
+                 type="button"
+                 onClick={handleUploadImage}
+                 disabled={isUploading || !!(newProduct.imageUrl && !selectedFile)}
+                 className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                   newProduct.imageUrl && selectedFile 
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-theme-primary text-white hover:bg-theme-primary/90'
+                 }`}
+               >
+                 {isUploading ? 'Uploading...' : 'Upload Image'}
+               </button>
+            )}
+            
+            {/* Hidden field msg if needed or just validation in submit */}
           </div>
 
           {/* Form Fields Section */}
@@ -250,6 +301,17 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
               />
             </div>
+
+            <div className="col-span-1 md:col-span-2 flex flex-col space-y-2">
+              <label className="text-sm font-medium text-theme-foreground">Features</label>
+              <textarea
+                className="w-full px-3 py-2 border border-theme-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-theme-primary focus:border-theme-primary bg-theme-background text-theme-foreground text-sm"
+                rows={4}
+                placeholder="Enter product features (e.g. Dimensions, Material, Care Instructions)"
+                value={newProduct.features}
+                onChange={(e) => setNewProduct({ ...newProduct, features: e.target.value })}
+              />
+            </div>
           </div>
         </div>
 
@@ -258,14 +320,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             type="button"
             onClick={handleClose}
             className="btn-outline px-6 py-2 rounded-lg text-sm font-medium"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploading}
           >
             Cancel
           </button>
           <button
             type="submit"
             className="btn-primary px-6 py-2 rounded-lg text-sm font-medium"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploading}
           >
             {isSubmitting ? (product ? 'Updating...' : 'Adding...') : (product ? 'Update Product' : 'Add Product')}
           </button>

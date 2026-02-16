@@ -381,6 +381,12 @@ export const PRODUCT_SUB_CATEGORIES = {
   ],
   Resin: [
     { value: 'Standard Resin', label: 'Standard Resin' },
+    { value: 'Key Chain', label: 'Key Chain' },
+    { value: 'Tea Table', label: 'Tea Table' },
+    { value: 'Wall Clock', label: 'Wall Clock' },
+    { value: 'Pendants', label: 'Pendants' },
+    { value: 'Earrings', label: 'Earrings' },
+    { value: 'Other', label: 'Other' },
   ],
   Lippan: [
     { value: 'Standard Lippan', label: 'Standard Lippan' },
