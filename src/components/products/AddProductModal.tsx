@@ -177,10 +177,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
               />
               {imagePreview && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
                   <p className="text-white text-sm font-medium">Change Image</p>
                 </div>
               )}
